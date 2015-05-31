@@ -1,10 +1,6 @@
 require 'rubygems'
 require 'bundler/setup'
-
 require 'thor'
-
-require 'dotenv'
-Dotenv.load
 
 require 'reports/github_api_client'
 require 'reports/table_printer'
