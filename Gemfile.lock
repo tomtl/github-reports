@@ -73,6 +73,7 @@ DEPENDENCIES
   byebug
   dalli
   dotenv
+  faraday
   octokit
   rake
   redis
