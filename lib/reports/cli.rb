@@ -22,10 +22,10 @@ module Reports
 
       client = GitHubAPIClient.new
       user = client.user_info(username)
-      
-      puts "name: #{data['login']}"
-      puts "location: #{data['location']}"
-      puts "public repos: #{data['public_repos']}"
+
+      puts "name: #{user.name}"
+      puts "location: #{user.location}"
+      puts "public repos: #{user.public_repos}"
     end
 
     private
