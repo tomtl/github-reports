@@ -9,6 +9,9 @@ module Reports
   class GitHubAPIClient
     def initialize
       @logger = Logger.new(STDOUT)
+      @logger.formatter = proc do |severity, datetime, progname, msg|
+        msg + "\n"
+      end
     end
     
     def user_info(username)
