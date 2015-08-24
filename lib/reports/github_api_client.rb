@@ -1,11 +1,16 @@
-require 'faraday'
-require 'json'
+require "faraday"
+require "json"
+require "logger"
 
 module Reports
 
   User = Struct.new(:name, :location, :public_repos)
 
   class GitHubAPIClient
+    def initialize
+      @logger = Logger.new(STDOUT)
+    end
+    
     def user_info(username)
       url = "https://api.github.com/users/#{username}"
 
@@ -13,7 +18,7 @@ module Reports
       response = Faraday.get url
       duration = Time.now - start_time
 
-      puts "-> %s %s %d (%.3f s)" % [url, "GET", response.status, duration]
+      @logger.debug "-> %s %s %d (%.3f s)" % [url, "GET", response.status, duration]
 
       data = JSON.parse(response.body)
       User.new(data["name"], data["location"], data["public_repos"])
