@@ -14,17 +14,11 @@ module Reports
   User = Struct.new(:name, :location, :public_repos)
   Repo = Struct.new(:name, :url)
 
-  VALID_STATUS_CODES = [200, 302, 401, 403, 404, 422]
-
   class GitHubAPIClient
     def user_info(username)
       url = "https://api.github.com/users/#{username}"
 
       response = connection.get(url)
-
-      if !VALID_STATUS_CODES.include? response.status
-        raise RequestFailure, JSON.parse(response.body)["message"]
-      end
 
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
@@ -38,10 +32,6 @@ module Reports
       url = "https://api.github.com/users/#{username}/repos"
 
       response = connection.get(url)
-
-      if !VALID_STATUS_CODES.include? response.status
-        raise RequestFailure, JSON.parse(response.body)["message"]
-      end
 
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
