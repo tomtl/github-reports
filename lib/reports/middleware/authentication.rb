@@ -11,8 +11,8 @@ module Reports
         @app.call(env).on_complete do |response_env|
           if response_env.status == 401
             raise AuthenticationFailure,
-              "Authentication Failed. Please set the 'GITHUB_TOKEN'" +
-              " environment variable to a valid Github access token."
+                  "Authentication Failed. Please set the 'GITHUB_TOKEN'" +
+                    " environment variable to a valid Github access token."
           end
         end
       end
