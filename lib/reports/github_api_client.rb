@@ -1,6 +1,7 @@
 require "faraday"
 require "json"
 require "logger"
+require_relative "middleware/logging"
 
 module Reports
 
@@ -16,12 +17,6 @@ module Reports
 
   class GitHubAPIClient
     def initialize(token)
-      @logger = Logger.new(STDOUT)
-
-      @logger.formatter = proc do |severity, datetime, progname, msg|
-        msg + "\n"
-      end
-
       @token = token
     end
 
@@ -29,11 +24,7 @@ module Reports
       headers = {"Authorization" => "token #{@token}"}
       url = "https://api.github.com/users/#{username}"
 
-      start_time = Time.now
-      response = Faraday.get(url, nil, headers)
-      duration = Time.now - start_time
-
-      @logger.debug "-> %s %s %d (%.3f s)" % [url, "GET", response.status, duration]
+      response = connection.get(url, nil, headers)
 
       if !VALID_STATUS_CODES.include? response.status
         raise RequestFailure, JSON.parse(response.body)["message"]
@@ -55,11 +46,7 @@ module Reports
       headers = {"Authorization" => "token #{@token}"}
       url = "https://api.github.com/users/#{username}/repos"
 
-      start_time = Time.now
-      response = Faraday.get(url, nil, headers)
-      duration = Time.now - start_time
-
-      @logger.debug "-> %s %s %d (%.3f s)" % [url, "GET", response.status, duration]
+      response = connection.get(url, nil, headers)
 
       if !VALID_STATUS_CODES.include? response.status
         raise RequestFailure, JSON.parse(response.body)["message"]
@@ -75,6 +62,13 @@ module Reports
 
       data = JSON.parse(response.body)
       data.map { |repo_data| Repo.new(repo_data["full_name"], repo_data["url"]) }
+    end
+
+    def connection
+      @connection ||=  Faraday::Connection.new do |builder|
+        builder.use Middleware::Logging
+        builder.adapter Faraday.default_adapter
+      end
     end
   end
 
