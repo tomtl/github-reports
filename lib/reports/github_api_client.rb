@@ -10,6 +10,8 @@ module Reports
   class RequestFailure < Error; end
 
   User = Struct.new(:name, :location, :public_repos)
+  Repo = Struct.new(:name, :url)
+
   VALID_STATUS_CODES = [200, 302, 401, 403, 404, 422]
 
   class GitHubAPIClient
@@ -47,6 +49,32 @@ module Reports
 
       data = JSON.parse(response.body)
       User.new(data["name"], data["location"], data["public_repos"])
+    end
+
+    def user_repos(username)
+      headers = {"Authorization" => "token #{@token}"}
+      url = "https://api.github.com/users/#{username}/repos"
+
+      start_time = Time.now
+      response = Faraday.get(url, nil, headers)
+      duration = Time.now - start_time
+
+      @logger.debug "-> %s %s %d (%.3f s)" % [url, "GET", response.status, duration]
+
+      if !VALID_STATUS_CODES.include? response.status
+        raise RequestFailure, JSON.parse(response.body)["message"]
+      end
+
+      if response.status == 401
+        raise AuthenticationFailure, "Authentication Failed. Please set the 'GITHUB_TOKEN' environment variable to a valid Github access token."
+      end
+
+      if response.status == 404
+        raise NonexistentUser, "'#{username}' does not exist"
+      end
+
+      data = JSON.parse(response.body)
+      data.map { |repo_data| Repo.new(repo_data["full_name"], repo_data["url"]) }
     end
   end
 
