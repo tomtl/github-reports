@@ -2,6 +2,7 @@ require "faraday"
 require "json"
 require "logger"
 require_relative "middleware/logging"
+require_relative "middleware/authentication"
 
 module Reports
 
@@ -16,22 +17,13 @@ module Reports
   VALID_STATUS_CODES = [200, 302, 401, 403, 404, 422]
 
   class GitHubAPIClient
-    def initialize(token)
-      @token = token
-    end
-
     def user_info(username)
-      headers = {"Authorization" => "token #{@token}"}
       url = "https://api.github.com/users/#{username}"
 
-      response = connection.get(url, nil, headers)
+      response = connection.get(url)
 
       if !VALID_STATUS_CODES.include? response.status
         raise RequestFailure, JSON.parse(response.body)["message"]
-      end
-
-      if response.status == 401
-        raise AuthenticationFailure, "Authentication Failed. Please set the 'GITHUB_TOKEN' environment variable to a valid Github access token."
       end
 
       if response.status == 404
@@ -43,17 +35,12 @@ module Reports
     end
 
     def user_repos(username)
-      headers = {"Authorization" => "token #{@token}"}
       url = "https://api.github.com/users/#{username}/repos"
 
-      response = connection.get(url, nil, headers)
+      response = connection.get(url)
 
       if !VALID_STATUS_CODES.include? response.status
         raise RequestFailure, JSON.parse(response.body)["message"]
-      end
-
-      if response.status == 401
-        raise AuthenticationFailure, "Authentication Failed. Please set the 'GITHUB_TOKEN' environment variable to a valid Github access token."
       end
 
       if response.status == 404
@@ -66,6 +53,7 @@ module Reports
 
     def connection
       @connection ||=  Faraday::Connection.new do |builder|
+        builder.use Middleware::Authentication
         builder.use Middleware::Logging
         builder.adapter Faraday.default_adapter
       end
