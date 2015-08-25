@@ -40,11 +40,14 @@ module Reports
       end
 
       data = response.body
-      data.map { |repo_data| Repo.new(repo_data["full_name"], repo_data["url"]) }
+
+      data.map do |repo_data|
+        Repo.new(repo_data["full_name"], repo_data["url"])
+      end
     end
 
     def connection
-      @connection ||=  Faraday::Connection.new do |builder|
+      @connection ||= Faraday::Connection.new do |builder|
         builder.use Middleware::JSONParsing
         builder.use Middleware::StatusCheck
         builder.use Middleware::Authentication

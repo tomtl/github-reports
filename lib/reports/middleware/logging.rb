@@ -17,7 +17,8 @@ module Reports
         @app.call(env).on_complete do
           duration = Time.now - start_time
           url, method, status = env.url.to_s, env.method, env.status
-          @logger.debug "-> %s %s %d (%.3f s)" % [url, method.to_s.upcase, status, duration]
+          @logger.debug "-> %s %s %d (%.3f s)" % [
+            url, method.to_s.upcase, status, duration]
         end
       end
     end
