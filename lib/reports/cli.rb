@@ -22,7 +22,7 @@ module Reports
     def user_info(username)
       puts "Getting info for #{username}..."
 
-      client = GitHubAPIClient.new(ENV['GITHUB_TOKEN'])
+      client = GitHubAPIClient.new
       user = client.user_info(username)
 
       puts "name: #{user.name}"
@@ -33,12 +33,25 @@ module Reports
       exit 1
     end
 
+    desc "repositories USERNAME", "Load the repo stats for USERNAME"
+    def repositories(username)
+      puts "Getting public repositories for #{username}..."
+
+      client = GitHubAPIClient.new
+      repos = client.user_repos(username)
+
+      puts "#{username} has #{repos.size} public repos. \n\n"
+      repos.each { |repo| puts "#{repo.name} - #{repo.url}" }
+    rescue Error => error
+      puts "Error #{error.message}"
+      exit 1
+    end
+
     private
 
     def client
       @client ||= GitHubAPIClient.new
     end
-
   end
 
 end
