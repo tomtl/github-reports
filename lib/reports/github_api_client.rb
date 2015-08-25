@@ -3,6 +3,8 @@ require "json"
 require "logger"
 require_relative "middleware/logging"
 require_relative "middleware/authentication"
+require_relative "middleware/status_check"
+require_relative "middleware/json_parsing"
 
 module Reports
 
@@ -24,7 +26,7 @@ module Reports
         raise NonexistentUser, "'#{username}' does not exist"
       end
 
-      data = JSON.parse(response.body)
+      data = response.body
       User.new(data["name"], data["location"], data["public_repos"])
     end
 
@@ -37,12 +39,14 @@ module Reports
         raise NonexistentUser, "'#{username}' does not exist"
       end
 
-      data = JSON.parse(response.body)
+      data = response.body
       data.map { |repo_data| Repo.new(repo_data["full_name"], repo_data["url"]) }
     end
 
     def connection
       @connection ||=  Faraday::Connection.new do |builder|
+        builder.use Middleware::JSONParsing
+        builder.use Middleware::StatusCheck
         builder.use Middleware::Authentication
         builder.use Middleware::Logging
         builder.adapter Faraday.default_adapter

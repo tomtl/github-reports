@@ -8,7 +8,7 @@ module Reports
       end
 
       def call(env)
-        @app.call.on_complete do |response_env|
+        @app.call(env).on_complete do |response_env|
           unless VALID_STATUS_CODES.include? response_env.status
             raise RequestFailure, JSON.parse(response_env.body)["message"]
           end
