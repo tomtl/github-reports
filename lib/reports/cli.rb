@@ -1,11 +1,12 @@
-require 'rubygems'
-require 'bundler/setup'
-require 'thor'
-require 'dotenv'
+require "rubygems"
+require "bundler/setup"
+require "thor"
+require "dotenv"
+require "time"
 Dotenv.load
 
-require 'reports/github_api_client'
-require 'reports/table_printer'
+require "reports/github_api_client"
+require "reports/table_printer"
 
 module Reports
 
@@ -13,7 +14,7 @@ module Reports
 
     desc "console", "Open an RB session with all dependencies loaded and API defined."
     def console
-      require 'irb'
+      require "irb"
       ARGV.clear
       IRB.start
     end
