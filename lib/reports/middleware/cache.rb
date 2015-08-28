@@ -12,6 +12,8 @@ module Reports
 
         if cached_response && useable_cache?(cached_response)
           return cached_response
+        elsif cached_response
+          env.request_headers["If-None-Match"] = cached_response.headers["ETag"]
         end
 
         response = @app.call(env)
