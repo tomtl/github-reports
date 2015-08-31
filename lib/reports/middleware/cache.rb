@@ -3,6 +3,7 @@ module Reports
     class Cache < Faraday::Middleware
       def initialize(app)
         super(app)
+        @app = app
         @storage = {}
       end
 
@@ -10,34 +11,40 @@ module Reports
         key = env.url.to_s
         cached_response = @storage[key]
 
-        if cached_response && useable_cache?(cached_response)
-          return cached_response
-        elsif cached_response
-          env.request_headers["If-None-Match"] = cached_response.headers["ETag"]
+        if cached_response
+          if fresh?(cached_response)
+            return cached_response unless needs_revalidation?(cached_response)
+          else
+            env.request_headers["If-None-Match"] = cached_response.headers['ETag']
+          end
         end
 
         response = @app.call(env)
         response.on_complete do |response_env|
-          cache_control_header = response_env.response_headers["Cache-Control"]
-          if cache_control_header && allows_storage?(cache_control_header)
-            @storage[key] = response
+          if cachable_response?(response_env)
+            if response.status == 304
+              cached_response = @storage[key]
+              cached_response.headers["Date"] = response.headers["Date"]
+              @storage_key = cached_response
+
+              response.env.update(cached_response.env)
+            else
+              @storage[key] = response
+            end
           end
         end
-
         response
       end
 
       private
 
-      def allows_storage?(cache_control_header)
-        !cache_control_header.include?("no-store")
+      def cachable_response?(env)
+        env.method == :get &&
+          env.response_headers['Cache-Control'] &&
+            !env.response_headers['Cache-Control'].include?('no-store')
       end
 
-      def useable_cache?(cached_response)
-        !mandatory_refresh?(cached_response) && fresh?(cached_response)
-      end
-
-      def mandatory_refresh?(cached_response)
+      def needs_revalidation?(cached_response)
         ["non-cache", "must-validate"].include?(
           cached_response.headers["Cache-Control"])
       end
