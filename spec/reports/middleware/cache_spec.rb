@@ -1,6 +1,7 @@
 require "faraday"
 require "time"
 require "reports/middleware/cache"
+require "reports/storage/memory"
 
 module Reports::Middleware
   RSpec.describe Cache do
@@ -8,7 +9,7 @@ module Reports::Middleware
 
     let(:conn) do
       Faraday.new do |builder|
-        builder.use Cache
+        builder.use Cache, ::Reports::Storage::Memory.new
         builder.adapter :test, stubs
       end
     end

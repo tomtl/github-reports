@@ -1,19 +1,19 @@
 module Reports
   module Middleware
     class Cache < Faraday::Middleware
-      def initialize(app)
+      def initialize(app, storage)
         super(app)
         @app = app
-        @storage = {}
+        @storage = storage
       end
 
       def call(env)
         key = env.url.to_s
-        cached_response = @storage[key]
+        cached_response = @storage.read(key)
 
         if cached_response
           if fresh?(cached_response)
-            return cached_response unless needs_revalidation?(cached_response)
+            return @storage.read(key) unless needs_revalidation?(cached_response)
           else
             env.request_headers["If-None-Match"] = cached_response.headers['ETag']
           end
@@ -23,13 +23,13 @@ module Reports
         response.on_complete do |response_env|
           if cachable_response?(response_env)
             if response.status == 304
-              cached_response = @storage[key]
+              cached_response = @storage.read(key)
               cached_response.headers["Date"] = response.headers["Date"]
-              @storage_key = cached_response
+              @storage.write(key, cached_response)
 
               response.env.update(cached_response.env)
             else
-              @storage[key] = response
+              @storage.write(key, response)
             end
           end
         end
