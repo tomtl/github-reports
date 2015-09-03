@@ -6,11 +6,13 @@ module Reports
       end
 
       def read(key)
-        @hash[key]
+        serialized_value = @hash[key]
+        Marshal.load(serialized_value) if serialized_value
       end
 
       def write(key, value)
-        @hash[key] = value
+        serialized_value = Marshal.dump(value)
+        @hash[key] = serialized_value
       end
     end
   end
