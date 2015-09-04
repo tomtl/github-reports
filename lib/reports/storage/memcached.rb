@@ -21,6 +21,10 @@ module Reports
       def write(key, value)
         @memcached.set(key, Marshal.dump(value))
       end
+
+      def flush
+        @memcached.flush
+      end
     end
   end
 end

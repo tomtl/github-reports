@@ -7,6 +7,8 @@ module Reports::Middleware
   RSpec.describe Cache do
     let(:stubs) { Faraday::Adapter::Test::Stubs.new }
 
+    let(:storage) { ::Reports::Storage::Memcached.new }
+
     let(:conn) do
       Faraday.new do |builder|
         builder.use Cache, ::Reports::Storage::Memcached.new
@@ -17,6 +19,10 @@ module Reports::Middleware
     let(:response_array) do
       headers = {"Cache-Control" => "max-age=300", "Date" => Time.new.httpdate}
       [200, headers, "hello"]
+    end
+
+    after do
+      storage.flush
     end
 
     it "returns a previously cached response" do
