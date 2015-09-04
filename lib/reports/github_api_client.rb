@@ -6,7 +6,7 @@ require_relative "middleware/authentication"
 require_relative "middleware/status_check"
 require_relative "middleware/json_parsing"
 require_relative "middleware/cache"
-require_relative "storage/memcached"
+require_relative "storage/redis"
 
 module Reports
 
@@ -49,23 +49,12 @@ module Reports
       end
     end
 
-    # def connection
-    #   @connection ||= Faraday::Connection.new do |builder|
-    #     builder.use Middleware::StatusCheck
-    #     builder.use Middleware::Authentication
-    #     builder.use Middleware::JSONParsing
-    #     builder.use Middleware::Cache, Storage::Memory.new
-    #     builder.use Middleware::Logging
-    #     builder.adapter Faraday.default_adapter
-    #   end
-    # end
-
     def client
       @client ||= Faraday::Connection.new do |builder|
         builder.use Middleware::JSONParsing
         builder.use Middleware::StatusCheck
         builder.use Middleware::Authentication
-        builder.use Middleware::Cache, Storage::Memcached.new
+        builder.use Middleware::Cache, Storage::Redis.new
         builder.use Middleware::Logging
         builder.adapter Faraday.default_adapter
       end
