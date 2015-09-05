@@ -17,7 +17,6 @@ module Reports
               cached_response.env.response_headers["X-Faraday-Cache-Status"] = "true"
               return cached_response
             end
-            # return @storage.read(key) unless needs_revalidation?(cached_response)
           else
             env.request_headers["If-None-Match"] = cached_response.headers['ETag']
           end
