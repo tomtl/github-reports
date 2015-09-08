@@ -48,6 +48,17 @@ module Reports
       exit 1
     end
 
+    desc "activity USERNAME", "Summarize the activity of GitHub user USERNAME"
+    def public_events_for_user(username)
+      puts "Getting events for #{username}..."
+      client = GitHubAPIClient.new
+      events = client.user_events(username)
+      events.each { |event| puts "#{event.type} - #{event.repo_name}" }
+    rescue Error => error
+      puts "Error #{error.message}"
+      exit 1
+    end
+
     private
 
     def client
