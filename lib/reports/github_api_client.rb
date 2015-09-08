@@ -5,6 +5,8 @@ require_relative "middleware/logging"
 require_relative "middleware/authentication"
 require_relative "middleware/status_check"
 require_relative "middleware/json_parsing"
+require_relative "middleware/cache"
+require_relative "storage/redis"
 
 module Reports
 
@@ -12,6 +14,7 @@ module Reports
   class AuthenticationFailure < Error; end
   class NonexistentUser < Error; end
   class RequestFailure < Error; end
+  class ConfigurationError < Error; end
 
   User = Struct.new(:name, :location, :public_repos)
   Repo = Struct.new(:name, :url)
@@ -20,7 +23,7 @@ module Reports
     def user_info(username)
       url = "https://api.github.com/users/#{username}"
 
-      response = connection.get(url)
+      response = client.get(url)
 
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
@@ -33,7 +36,7 @@ module Reports
     def user_repos(username)
       url = "https://api.github.com/users/#{username}/repos"
 
-      response = connection.get(url)
+      response = client.get(url)
 
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
@@ -46,15 +49,15 @@ module Reports
       end
     end
 
-    def connection
-      @connection ||= Faraday::Connection.new do |builder|
+    def client
+      @client ||= Faraday::Connection.new do |builder|
         builder.use Middleware::JSONParsing
         builder.use Middleware::StatusCheck
         builder.use Middleware::Authentication
         builder.use Middleware::Logging
+        builder.use Middleware::Cache, Storage::Redis.new
         builder.adapter Faraday.default_adapter
       end
     end
   end
-
 end
