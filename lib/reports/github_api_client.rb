@@ -64,19 +64,15 @@ module Reports
 
       data = response.body
 
-      page = last_page = 1
       link_header = response.headers['link']
 
-      # Extract the last page number from the Link header
       if link_header
-        last_page = link_header.match(/<.*page=(\d+)>; rel="last"/)[1].to_i
-      end
-
-      # Load the rest of the events
-      while page < last_page
-        page += 1
-        response = client.get(url, page: page)
-        data += response.body
+        while match_data = link_header.match(/<(.*)>; rel="next"/)
+          next_page_url = match_data[1]
+          response = client.get(next_page_url)
+          link_header = response.headers['link']
+          data += response.body
+        end
       end
 
       data.map do |event_data|
