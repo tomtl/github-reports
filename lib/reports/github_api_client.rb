@@ -58,14 +58,31 @@ module Reports
         raise NonexistentUser, "'#{username}' does not exist."
       end
 
+      if response.status != 200
+        raise NonexistentUser, "'#{username}' does not exist"
+      end
+
       data = response.body
 
-      if response.status == 200
-        data.map do |event_data|
-          event_type = event_data["type"]
-          repo_name = event_data["repo"]["name"] if event_data["repo"]["name"]
-          Event.new(event_type, repo_name)
-        end
+      page = last_page = 1
+      link_header = response.headers['link']
+
+      # Extract the last page number from the Link header
+      if link_header
+        last_page = link_header.match(/<.*page=(\d+)>; rel="last"/)[1].to_i
+      end
+
+      # Load the rest of the events
+      while page < last_page
+        page += 1
+        response = client.get(url, page: page)
+        data += response.body
+      end
+
+      data.map do |event_data|
+        event_type = event_data["type"]
+        repo_name = event_data["repo"]["name"] if event_data["repo"]["name"]
+        Event.new(event_type, repo_name)
       end
     end
 
