@@ -48,9 +48,21 @@ module Reports
 
       puts "#{username} has #{repos.size} public repos. \n\n"
 
+      table_printer = TablePrinter.new(STDOUT)
+
       repos.each do |repo|
-        puts "#{repo.name}: #{repo.languages.keys.join(', ')}"
+        table_printer.print(repo.languages, title: repo.name, humanize: true)
+        puts # blank line
       end
+
+      stats = Hash.new(0)
+      repos.each do |repo|
+        repo.languages.each_pair do |language, bytes|
+          stats[language] += bytes
+        end
+      end
+
+      table_printer.print(stats, title: "Language Summary", humanize: true, total: true)
 
     rescue Error => error
       puts "Error #{error.message}"
