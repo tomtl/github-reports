@@ -42,7 +42,11 @@ module Reports
       repos = client.user_repos(username)
 
       puts "#{username} has #{repos.size} public repos. \n\n"
-      repos.each { |repo| puts "#{repo.name} - #{repo.url}" }
+
+      repos.each do |repo| 
+        puts "#{repo.name}: #{repo.languages.keys.join(', ')}"
+      end
+
     rescue Error => error
       puts "Error #{error.message}"
       exit 1

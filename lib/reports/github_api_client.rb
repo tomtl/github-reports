@@ -19,7 +19,7 @@ module Reports
   class ConfigurationError < Error; end
 
   User = Struct.new(:name, :location, :public_repos)
-  Repo = Struct.new(:name, :url)
+  Repo = Struct.new(:name, :languages)
   Event = Struct.new(:type, :repo_name)
 
   class GitHubAPIClient
@@ -57,7 +57,10 @@ module Reports
       end
 
       repos.map do |repo_data|
-        Repo.new(repo_data["full_name"], repo_data["url"])
+        full_name = repo_data["full_name"]
+        language_url = "https://api.github.com/repos/#{full_name}/languages"
+        response = client.get(language_url)
+        Repo.new(repo_data["full_name"], response.body)
       end
     end
 
@@ -65,7 +68,7 @@ module Reports
       url = "https://api.github.com/users/#{username}/events/public"
       response = client.get(url)
 
-      if response.status != 200
+      if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
       end
 
