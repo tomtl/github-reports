@@ -35,15 +35,20 @@ module Reports
     end
 
     desc "repositories USERNAME", "Load the repo stats for USERNAME"
+    option :forks,
+      type: :boolean,
+      desc: "Include forks in stats",
+      default: false
+
     def repositories(username)
       puts "Getting public repositories for #{username}..."
 
       client = GitHubAPIClient.new
-      repos = client.user_repos(username)
+      repos = client.user_repos(username, forks: options[:forks])
 
       puts "#{username} has #{repos.size} public repos. \n\n"
 
-      repos.each do |repo| 
+      repos.each do |repo|
         puts "#{repo.name}: #{repo.languages.keys.join(', ')}"
       end
 

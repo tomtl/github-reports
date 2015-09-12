@@ -35,7 +35,7 @@ module Reports
       User.new(data["name"], data["location"], data["public_repos"])
     end
 
-    def user_repos(username)
+    def user_repos(username, forks: forks)
       url = "https://api.github.com/users/#{username}/repos"
       response = client.get(url)
 
@@ -57,11 +57,13 @@ module Reports
       end
 
       repos.map do |repo_data|
+        next if !forks && repo_data["fork"]
+
         full_name = repo_data["full_name"]
         language_url = "https://api.github.com/repos/#{full_name}/languages"
         response = client.get(language_url)
         Repo.new(repo_data["full_name"], response.body)
-      end
+      end.compact
     end
 
     def public_events_for_user(username)
