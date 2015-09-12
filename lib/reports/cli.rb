@@ -36,9 +36,9 @@ module Reports
 
     desc "repositories USERNAME", "Load the repo stats for USERNAME"
     option :forks,
-      type: :boolean,
-      desc: "Include forks in stats",
-      default: false
+           type: :boolean,
+           desc: "Include forks in stats",
+           default: false
 
     def repositories(username)
       puts "Getting public repositories for #{username}..."
@@ -62,7 +62,11 @@ module Reports
         end
       end
 
-      table_printer.print(stats, title: "Language Summary", humanize: true, total: true)
+      table_printer.print(
+        stats,
+        title: "Language Summary",
+        humanize: true, total: true
+      )
 
     rescue Error => error
       puts "Error #{error.message}"
@@ -94,8 +98,7 @@ module Reports
 
       table_printer.print(event_types_map, title: "Event Summary", total: true)
       push_events = events.select { |event| event.type == "PushEvent" }
-      push_events_map = push_events.each_with_object(Hash.new(0)) do
-        |event, counts|
+      push_events_map = push_events.each_with_object(Hash.new(0)) do |event, counts|
         counts[event.repo_name] += 1
       end
 
