@@ -84,6 +84,17 @@ module Reports
       exit 1
     end
 
+    desc "gist FILE", "Create a gist from a file"
+    def create_gist(file)
+      puts "Creating a gist..."
+      client = GitHubAPIClient.new
+      gist = client.create_gist(file)
+      puts "Gist created: #{gist.url}"
+    rescue Error => error
+      puts "Error #{error.message}"
+      exit 1
+    end
+
     private
 
     def client

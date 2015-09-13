@@ -21,6 +21,7 @@ module Reports
   User = Struct.new(:name, :location, :public_repos)
   Repo = Struct.new(:name, :languages)
   Event = Struct.new(:type, :repo_name)
+  Gist = Struct.new(:url)
 
   class GitHubAPIClient
     def user_info(username)
@@ -91,6 +92,15 @@ module Reports
         event_type = event_data["type"]
         repo_name = event_data["repo"]["name"] if event_data["repo"]["name"]
         Event.new(event_type, repo_name)
+      end
+    end
+
+    def create_gist(file)
+      url = "https://api.github.com/gists"
+      response = client.post(url, files: file)
+
+      if response.status == 201
+        Gist.new(response["url"])
       end
     end
 
