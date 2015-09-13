@@ -22,6 +22,7 @@ module Reports
   Repo = Struct.new(:name, :languages)
   Event = Struct.new(:type, :repo_name)
   Gist = Struct.new(:url)
+  Star = Struct.new(:owner, :repo)
 
   class GitHubAPIClient
     def user_info(username)
@@ -101,6 +102,14 @@ module Reports
 
       if response.status == 201
         Gist.new(response["url"])
+      end
+    end
+
+    def star(owner, repo)
+      url = "https://api.github.com/user/starred/#{owner}/#{repo}"
+
+      response = client.put(url) do |request|
+        request.headers["Content-Length"] = "0"
       end
     end
 
