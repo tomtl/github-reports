@@ -25,6 +25,17 @@ module Reports
   Star = Struct.new(:owner, :repo)
 
   class GitHubAPIClient
+    def initialize
+      level = ENV["LOG_LEVEL"]
+      @logger = Logger.new(STDOUT)
+
+      @logger.formatter = proc do |severity, datetime, program, message|
+        message +"\n"
+      end
+
+      @logger.level = Logger.const_get(level) if level
+    end
+
     def user_info(username)
       url = "https://api.github.com/users/#{username}"
       response = client.get(url)
