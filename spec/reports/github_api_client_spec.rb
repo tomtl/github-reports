@@ -14,7 +14,7 @@ module Reports
         expect(user.public_repos).to eq(5)
       end
 
-      it "raises an error for a nonexistent user" do
+      it "raises an error for a nonexistent user", :vcr do
         client = GitHubAPIClient.new
 
         expect(->{
