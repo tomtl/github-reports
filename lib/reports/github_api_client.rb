@@ -107,7 +107,7 @@ module Reports
       end
     end
 
-    def create_gist(file)
+    def create_private_gist(file)
       url = "https://api.github.com/gists"
       response = client.post(url, files: file)
 
