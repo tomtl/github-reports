@@ -10,11 +10,17 @@ class FakeGitHub < Sinatra::Base
     @gists = []
   end
 
-  post "/gists" do
+  post '/gists' do
     content_type :json
-    status 201
-    @gists << JSON.parse(request.body.read)
-    {html_url: "https://gist.github.com/username/abcdefg12345678"}.to_json
+    payload = JSON.parse(request.body.read)
+    if payload["files"].any? { |name, hash| hash["content"] == "" }
+      status 422
+      {message: "Validation Failed!"}.to_json
+    else
+      status 201
+      @gists << payload
+      {html_url: "https://gist.github.com/username/abcdefg12345678"}.to_json
+    end
   end
 end
 
@@ -40,6 +46,14 @@ module Reports
           }
         }
       })
+    end
+
+    it "raises an exception when gist creation fails" do
+      client = GitHubAPIClient.new
+
+      expect(->{
+        client.create_private_gist("a quick gist", "hello.rb", "")
+      }).to raise_error(GistCreationFailure)
     end
   end
 end

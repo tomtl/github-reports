@@ -17,6 +17,7 @@ module Reports
   class NonexistentUser < Error; end
   class RequestFailure < Error; end
   class ConfigurationError < Error; end
+  class GistCreationFailure < Error; end
 
   User = Struct.new(:name, :location, :public_repos)
   Repo = Struct.new(:name, :languages)
@@ -107,12 +108,26 @@ module Reports
       end
     end
 
-    def create_private_gist(file)
+    def create_private_gist(description, file, content)
       url = "https://api.github.com/gists"
-      response = client.post(url, files: file)
+      body = {
+        "description" => "#{description}",
+        "public" => false,
+        "files" => {
+          "#{file}" => {
+            "content" => "#{content}"
+          }
+        }
+      }
+
+      response = client.post(url) do |request|
+        request.body = body.to_json
+      end
 
       if response.status == 201
-        Gist.new(response["url"])
+        response.body["html_url"]
+      else
+        raise GistCreationFailure, "Gist not created"
       end
     end
 
