@@ -39,7 +39,7 @@ module Reports
 
     def user_info(username)
       url = "https://api.github.com/users/#{username}"
-      response = client.get(url)
+      response = connection.get(url)
 
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
@@ -51,7 +51,7 @@ module Reports
 
     def user_repos(username, forks: forks)
       url = "https://api.github.com/users/#{username}/repos"
-      response = client.get(url)
+      response = connection.get(url)
 
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
@@ -64,7 +64,7 @@ module Reports
       if link_header
         while match_data = link_header.match(/<(.*)>; rel="next"/)
           next_page_url = match_data[1]
-          response = client.get(next_page_url)
+          response = connection.get(next_page_url)
           link_header = response.headers["link"]
           repos += response.body
         end
@@ -75,14 +75,14 @@ module Reports
 
         full_name = repo_data["full_name"]
         language_url = "https://api.github.com/repos/#{full_name}/languages"
-        response = client.get(language_url)
+        response = connection.get(language_url)
         Repo.new(repo_data["full_name"], response.body)
       end.compact
     end
 
     def public_events_for_user(username)
       url = "https://api.github.com/users/#{username}/events/public"
-      response = client.get(url)
+      response = connection.get(url)
 
       if response.status == 404
         raise NonexistentUser, "'#{username}' does not exist"
@@ -95,7 +95,7 @@ module Reports
       if link_header
         while match_data = link_header.match(/<(.*)>; rel="next"/)
           next_page_url = match_data[1]
-          response = client.get(next_page_url)
+          response = connection.get(next_page_url)
           link_header = response.headers["link"]
           events += response.body
         end
@@ -120,7 +120,7 @@ module Reports
         }
       }
 
-      response = client.post(url) do |request|
+      response = connection.post(url) do |request|
         request.body = body.to_json
       end
 
@@ -134,13 +134,13 @@ module Reports
     def star(owner, repo)
       url = "https://api.github.com/user/starred/#{owner}/#{repo}"
 
-      response = client.put(url) do |request|
+      response = connection.put(url) do |request|
         request.headers["Content-Length"] = "0"
       end
     end
 
-    def client
-      @client ||= Faraday::Connection.new do |builder|
+    def connection
+      @connection ||= Faraday::Connection.new do |builder|
         builder.use Middleware::JSONParsing
         builder.use Middleware::StatusCheck
         builder.use Middleware::Authentication
@@ -149,5 +149,21 @@ module Reports
         builder.adapter Faraday.default_adapter
       end
     end
+
+    # For HoneyProxy
+    # def connection
+    #   ca_path = File.expand_path("~/.mitmproxy/mitmproxy-ca-cert.pem")
+    #   options = { proxy: 'https://localhost:8080',
+    #               ssl: {ca_file: ca_path},
+    #               url: "https://api.github.com" }
+    #   @connection ||= Faraday::Connection.new(options) do |builder|
+    #     builder.use Middleware::JSONParsing
+    #     builder.use Middleware::StatusCheck
+    #     builder.use Middleware::Authentication
+    #     builder.use Middleware::Logging
+    #     builder.use Middleware::Cache, Storage::Redis.new
+    #     builder.adapter Faraday.default_adapter
+    #   end
+    # end
   end
 end
