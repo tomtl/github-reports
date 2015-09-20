@@ -26,7 +26,7 @@ end
 
 module Reports
   RSpec.describe GitHubAPIClient do
-    let(:fake_server) { FakeGitHub.new }
+    let(:fake_server) { FakeGitHub.new! }
 
     before(:each) do
       stub_request(:any, /api.github.com/).to_rack(fake_server)
