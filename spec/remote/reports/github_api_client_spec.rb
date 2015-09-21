@@ -1,5 +1,5 @@
-require 'remote_helper'
-require 'reports/github_api_client'
+require "remote_helper"
+require "reports/github_api_client"
 
 module Reports
   RSpec.describe GitHubAPIClient, remote: true do

@@ -10,10 +10,10 @@ class FakeGitHub < Sinatra::Base
     @gists = []
   end
 
-  post '/gists' do
+  post "/gists" do
     content_type :json
     payload = JSON.parse(request.body.read)
-    if payload["files"].any? { |name, hash| hash["content"] == "" }
+    if payload["files"].any? { |_name, hash| hash["content"] == "" }
       status 422
       {message: "Validation Failed!"}.to_json
     else
@@ -34,7 +34,11 @@ module Reports
 
     it "creates a private gist" do
       client = GitHubAPIClient.new
-      url = client.create_private_gist("a quick gist", "hello.rb", "puts 'hello'")
+      url = client.create_private_gist(
+        "a quick gist",
+        "hello.rb",
+        "puts 'hello'"
+      )
 
       expect(url).to eq("https://gist.github.com/username/abcdefg12345678")
       expect(fake_server.gists.first).to eql({

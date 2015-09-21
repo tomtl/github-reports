@@ -31,7 +31,7 @@ module Reports
       @logger = Logger.new(STDOUT)
 
       @logger.formatter = proc do |severity, datetime, program, message|
-        message +"\n"
+        message + "\n"
       end
 
       @logger.level = Logger.const_get(level) if level
@@ -134,7 +134,7 @@ module Reports
     def star(owner, repo)
       url = "https://api.github.com/user/starred/#{owner}/#{repo}"
 
-      response = connection.put(url) do |request|
+      connection.put(url) do |request|
         request.headers["Content-Length"] = "0"
       end
     end
