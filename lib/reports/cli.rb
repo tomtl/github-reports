@@ -84,6 +84,28 @@ module Reports
       exit 1
     end
 
+    desc "activity", "Create a gist from a file"
+    def create_gist(file)
+      puts "Creating a gist..."
+      client = GitHubAPIClient.new
+      gist = client.create_gist(file)
+      puts "Gist created: #{gist.url}"
+    rescue Error => error
+      puts "Error #{error.message}"
+      exit 1
+    end
+
+    desc "activity", "Star a repository"
+    def star(owner, repo)
+      puts "Starring #{repo}..."
+      client = GitHubAPIClient.new
+      star = client.star(owner, repo)
+      puts "Star added for #{repo}"
+    rescue Error => error
+      puts "Error: #{error.message}"
+      exit 1
+    end
+
     private
 
     def client

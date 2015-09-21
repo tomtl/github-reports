@@ -1,3 +1,5 @@
+require "time"
+
 module Reports
   module Middleware
     class Cache < Faraday::Middleware
